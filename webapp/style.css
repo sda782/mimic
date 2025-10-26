@@ -1,0 +1,129 @@
+:root {
+    --color-light: #ed6f63;
+    --color-dark: #2D2926;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+body{
+    background-color: var(--color-dark);
+    color: var(--color-dark);
+}
+
+.hide {
+    display: none;
+}
+
+nav ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    border-top: 2px solid var(--color-light);
+}
+nav ul li {
+    width: 100%;
+}
+nav button {
+    width: 100%;
+    background-color: var(--color-dark);
+    color: var(--color-light);
+    border: none;
+    padding: 1rem;
+    cursor: pointer;
+    border-bottom-left-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
+}
+nav button.active {
+    background-color: var(--color-light);
+    color: var(--color-dark);
+}
+
+.card {
+    background-color: var(--color-light);
+    padding: 1rem;
+    border-radius: 0.25rem;
+    margin: 1rem;
+    filter: drop-shadow(0 0 0.5rem rgba(0, 0, 0, 0.5));
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label{
+    margin-left: 0.5rem;
+    font-size: large;
+}
+
+input{
+    background-color: var(--color-dark);
+    color: var(--color-light);
+    border: none;
+    border-radius: 0.25rem;
+    padding: 0.5rem;
+    margin: 0.5rem;
+}
+input[type="file"]{
+    cursor: pointer;
+}
+
+input[type="file"]::file-selector-button{
+    display: none;
+}
+
+input[type="submit"] {
+    cursor: pointer;
+    text-align: center;
+}
+
+a{
+    color: var(--color-dark);
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+#progress-bar {
+    width: 100%;
+    height: 1.5rem;
+    background-color: var(--color-light);
+}
+#progress {
+    width: 10%;
+    height: 100%;
+    background-color: var(--color-dark);
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+table, th, td {
+  border: 1px solid var(--color-light);
+  padding: 0.5rem;
+}
+
+@media only screen and (min-width: 768px){
+    .card{
+        width: 700px;
+        max-width: 700px;
+        margin: 1rem auto;
+    }
+    .footer{
+        width: 700px;
+        max-width: 700px;
+        transform: translate(calc(50vw - 350px));
+    }
+}

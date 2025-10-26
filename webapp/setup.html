@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="normalize.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        input {
+            width: calc(100% - 2rem);
+        }
+
+        .card button {
+            background-color: var(--color-dark);
+            color: var(--color-light);
+            border: none;
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+            width: 100%;
+        }
+    </style>
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="card" style="text-align: center;">
+        <h2>setup</h2>
+        <label for="server_url">server url</label><br>
+        <input type="text" id="server_url"><br />
+        <label for="api_key">api key</label><br>
+        <input type="password" id="api_key">
+        <button id="save">save</button>
+    </div>
+    <script>
+        const server_url = document.getElementById('server_url');
+        const api_key = document.getElementById('api_key');
+        const save = document.getElementById('save');
+
+        save.addEventListener('click', () => {
+            server_url_input = server_url.value;
+            if (!server_url_input.endsWith('/')) {
+                server_url_input += '/';
+            }
+            localStorage.setItem('server_url', server_url_input);
+            localStorage.setItem('api_key', api_key.value);
+            window.alert('saved');
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+
+</html>
