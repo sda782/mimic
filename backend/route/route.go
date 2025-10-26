@@ -17,20 +17,22 @@ const maxUploadSize = 10 << 30 // 10 GB
 func HandleUpload(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 
+	user, err := database.GetUserByToken(r.Header.Get("Authorization")[7:])
+	fmt.Println(user.ID)
+	if user.ID == -1 || err != nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
 	mr, err := r.MultipartReader()
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error reading multipart data: %v", err), http.StatusBadRequest)
 		return
 	}
 
-	userID, filePart, filename, err := parseFormFieldsAndFile(mr)
+	filePart, filename, err := parseFormFieldsAndFile(mr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if userID == -1 {
-		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
 
@@ -53,7 +55,7 @@ func HandleUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fileUpload := types.Upload{
-		UserID:    userID,
+		UserID:    user.ID,
 		FileName:  filename,
 		FilePath:  finalPath,
 		ShortCode: "",
@@ -123,8 +125,7 @@ func HandleShortCode(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, upload.FilePath)
 }
 
-func parseFormFieldsAndFile(mr *multipart.Reader) (userID int, filePart multipart.Part, filename string, err error) {
-	userID = -1
+func parseFormFieldsAndFile(mr *multipart.Reader) (filePart multipart.Part, filename string, err error) {
 	for {
 		part, e := mr.NextPart()
 		if e == io.EOF {
@@ -136,14 +137,6 @@ func parseFormFieldsAndFile(mr *multipart.Reader) (userID int, filePart multipar
 		}
 
 		if part.FileName() == "" {
-			if part.FormName() == "name" {
-				value, _ := io.ReadAll(part)
-				userID, e = database.GetUserID(string(value))
-				if e != nil {
-					err = fmt.Errorf("error getting user ID: %v", e)
-					return
-				}
-			}
 			continue
 		}
 

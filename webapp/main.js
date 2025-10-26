@@ -30,7 +30,6 @@ function navigation() {
 }
 
 function upload(base_url = '/', api_key = '') {
-    const name = document.getElementById('name');
     const file = document.getElementById('file');
     const progress = document.getElementById('progress');
     const progress_bar = document.getElementById('progress-bar');
@@ -43,7 +42,6 @@ function upload(base_url = '/', api_key = '') {
         e.preventDefault();
 
         const formData = new FormData();
-        formData.append('name', name.value);
         formData.append('file', file.files[0]);
 
         const xhr = new XMLHttpRequest();
@@ -64,7 +62,6 @@ function upload(base_url = '/', api_key = '') {
             if (response.status === 'success') {
                 progress_bar.style.width = '100%';
                 progress.style.width = '100%';
-                name.value = '';
                 file.value = '';
                 last_link.innerHTML = `<a href="${response.url}">${response.url}</a>`;
             } else {
@@ -84,7 +81,7 @@ function history(base_url = '/', api_key = '') {
     const tbody = table.getElementsByTagName('tbody')[0];
     const last_link = document.getElementById('last_link');
 
-    fetch(`${base_url}uploads`, {
+    fetch(`${base_url}uploads/`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${api_key}`,
@@ -96,8 +93,8 @@ function history(base_url = '/', api_key = '') {
                 data.data.forEach(item => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
+                        <td title="${item.filename}">${item.filename}</td>
                         <td><a href="${base_url}${item.short_code}">${item.short_code}</a></td>
-                        <td>${item.filename}</td>
                     `;
                     tbody.appendChild(row);
                 });

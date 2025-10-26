@@ -113,6 +113,7 @@ table {
 table, th, td {
   border: 1px solid var(--color-light);
   padding: 0.5rem;
+  overflow: hidden;
 }
 
 @media only screen and (min-width: 768px){
