@@ -1,13 +1,39 @@
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
     const server_url = localStorage.getItem('server_url');
-    const api_key = localStorage.getItem('api_key');
-    if (!server_url || !api_key) {
+    if (!server_url) {
         window.location.href = 'setup.html';
+        return;
     }
+
+    const isSessionValid = await checkSession(server_url);
+    if (!isSessionValid) {
+        window.location.href = 'setup.html';
+        return;
+    }
+
     navigation();
-    upload(server_url, api_key);
-    history(server_url, api_key);
+    upload(server_url);
+    await history(server_url);
 });
+
+async function checkSession(base_url) {
+    try {
+        const response = await fetch(`${base_url}session/validate`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            return false;
+        }
+
+        const data = await response.json();
+        return data.status === 'success';
+    } catch (err) {
+        console.error('Session validation failed:', err);
+        return false;
+    }
+}
 
 function navigation() {
     const nav_upload = document.getElementById('nav_upload');
@@ -21,6 +47,7 @@ function navigation() {
         nav_history.classList.remove('active');
         nav_upload.classList.add('active');
     });
+
     nav_history.addEventListener('click', () => {
         upload.classList.add('hide');
         history.classList.remove('hide');
@@ -29,14 +56,13 @@ function navigation() {
     });
 }
 
-function upload(base_url = '/', api_key = '') {
+function upload(base_url = '/') {
     const file = document.getElementById('file');
     const progress = document.getElementById('progress');
     const progress_bar = document.getElementById('progress-bar');
     const upload_form = document.getElementById('upload_form');
     const status_bar = document.getElementById('status_bar');
     const last_link = document.getElementById('last_link');
-
 
     upload_form.addEventListener('submit', e => {
         e.preventDefault();
@@ -57,8 +83,14 @@ function upload(base_url = '/', api_key = '') {
         });
 
         xhr.onload = () => {
+            if (xhr.status === 401) {
+                window.location.href = 'setup.html';
+                return;
+            }
+
             const response = JSON.parse(xhr.responseText);
             status_bar.classList.add('hide');
+
             if (response.status === 'success') {
                 progress_bar.style.width = '100%';
                 progress.style.width = '100%';
@@ -70,36 +102,47 @@ function upload(base_url = '/', api_key = '') {
             }
         };
 
-        xhr.open('POST', base_url);
-        xhr.setRequestHeader('Authorization', `Bearer ${api_key}`);
+        xhr.open('POST', `${base_url}upload`);
+        xhr.withCredentials = true;
         xhr.send(formData);
     });
 }
 
-function history(base_url = '/', api_key = '') {
+async function history(base_url = '/') {
     const table = document.getElementById('history_table');
     const tbody = table.getElementsByTagName('tbody')[0];
     const last_link = document.getElementById('last_link');
 
-    fetch(`${base_url}uploads/`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${api_key}`,
-        }
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                data.data.forEach(item => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td title="${item.filename}">${item.filename}</td>
-                        <td><a href="${base_url}${item.short_code}">${item.short_code}</a></td>
-                    `;
-                    tbody.appendChild(row);
-                });
-                last_data = data.data[0];
-                last_link.innerHTML = `<a href="${base_url}${last_data.short_code}">${last_data.short_code}</a>`;
-            }
+    try {
+        const response = await fetch(`${base_url}uploads`, {
+            method: 'GET',
+            credentials: 'include'
         });
+
+        if (response.status === 401) {
+            window.location.href = 'setup.html';
+            return;
+        }
+
+        const data = await response.json();
+        if (!data || data.status !== 'success') return;
+
+        tbody.innerHTML = '';
+
+        for (const item of data.data) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td title="${item.filename}">${item.filename}</td>
+                <td><a href="${base_url}${item.short_code}">${item.short_code}</a></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        const last_data = data.data[0];
+        if (last_data) {
+            last_link.innerHTML = `<a href="${base_url}${last_data.short_code}">${base_url}${last_data.short_code}</a>`;
+        }
+    } catch (err) {
+        console.error('Failed to load history:', err);
+    }
 }

@@ -9,6 +9,7 @@
     <style>
         input {
             width: calc(100% - 2rem);
+            margin-bottom: 0.5rem;
         }
 
         .card button {
@@ -20,32 +21,60 @@
             width: 100%;
         }
     </style>
-    <title>Document</title>
+    <title>Setup</title>
 </head>
 
 <body>
     <div class="card" style="text-align: center;">
-        <h2>setup</h2>
-        <label for="server_url">server url</label><br>
-        <input type="text" id="server_url"><br />
-        <label for="api_key">api key</label><br>
-        <input type="password" id="api_key">
-        <button id="save">save</button>
+        <h2>Setup</h2>
+
+        <label for="server_url">Server URL</label><br>
+        <input type="text" id="server_url" placeholder="https://example.com/api"><br>
+
+        <label for="username">Username</label><br>
+        <input type="text" id="username" placeholder="Enter username"><br>
+
+        <label for="password">Password</label><br>
+        <input type="password" id="password" placeholder="Enter password"><br>
+
+        <button id="save">Login & Save</button>
     </div>
+
     <script>
         const server_url = document.getElementById('server_url');
-        const api_key = document.getElementById('api_key');
+        const username = document.getElementById('username');
+        const password = document.getElementById('password');
         const save = document.getElementById('save');
 
-        save.addEventListener('click', () => {
-            server_url_input = server_url.value;
-            if (!server_url_input.endsWith('/')) {
-                server_url_input += '/';
+        save.addEventListener('click', async () => {
+            let serverUrl = server_url.value.trim();
+            if (!serverUrl.endsWith('/')) {
+                serverUrl += '/';
             }
-            localStorage.setItem('server_url', server_url_input);
-            localStorage.setItem('api_key', api_key.value);
-            window.alert('saved');
-            window.location.href = 'index.html';
+
+            const loginUrl = serverUrl + 'login';
+            const formData = new FormData();
+            formData.append('username', username.value);
+            formData.append('password', password.value);
+
+            try {
+                const response = await fetch(loginUrl, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'include' // ensures cookies are handled
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Login failed: ${response.statusText}`);
+                }
+                
+                localStorage.setItem('server_url', serverUrl);
+                window.location.href = 'index.html';
+
+            } catch (err) {
+                console.error(err);
+                window.alert('Login failed. Please check your credentials and server URL.');
+            }
         });
     </script>
 </body>

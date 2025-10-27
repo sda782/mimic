@@ -2,10 +2,13 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 	"mimic/backend/misc"
 	"mimic/backend/types"
 	"os"
+
+	"golang.org/x/crypto/bcrypt"
 
 	_ "modernc.org/sqlite"
 )
@@ -111,6 +114,25 @@ func GetUpload(shortCode string) types.Upload {
 	return upload
 }
 
+func GetUser(username, password string) (types.User, error) {
+	var user types.User
+
+	row := db.QueryRow("SELECT id, name, password_hash FROM users WHERE name = ?", username)
+	err := row.Scan(&user.ID, &user.Name, &user.PasswordHash)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return user, errors.New("user not found")
+		}
+		return user, err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+		return user, errors.New("invalid password")
+	}
+
+	return user, nil
+}
+
 func GetUserID(name string) (int, error) {
 	row := db.QueryRow("SELECT id FROM users WHERE name = ?", name)
 	var id int
@@ -151,16 +173,23 @@ func UpdateSessionToken(userID int, token string) error {
 
 func CreateUser(name string, password string) (types.User, error) {
 	var user types.User
+
+	// Hash the password using bcrypt
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return user, err
+	}
+
 	stmt, err := db.Prepare(`
-		INSERT INTO users (name, password_hash)
-		VALUES (?, ?)
-	`)
+        INSERT INTO users (name, password_hash)
+        VALUES (?, ?)
+    `)
 	if err != nil {
 		return user, err
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(name, password)
+	res, err := stmt.Exec(name, string(hashedPassword))
 	if err != nil {
 		return user, err
 	}
@@ -171,6 +200,7 @@ func CreateUser(name string, password string) (types.User, error) {
 	}
 
 	user.ID = int(lastID)
+	user.Name = name
 
 	return user, nil
 }

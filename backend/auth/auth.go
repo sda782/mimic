@@ -1,36 +1,26 @@
 package auth
 
 import (
-	"crypto/rand"
-	"encoding/hex"
-	"fmt"
-	"log"
 	"mimic/backend/database"
+	"mimic/backend/types"
+	"net/http"
 )
 
-func Validate(tokenString string) bool {
-	tokenId := tokenString[7:]
-	user, err := database.GetUserByToken(tokenId)
-	return err == nil && user.ID != 0
-}
+func RequireAuth(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cookie, err := r.Cookie("session_token")
+		if err != nil {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
 
-func CreateToken(username string, password string) {
-	token := GenerateSecureToken(32)
-	userId, err := database.GetUserID(username)
-	if err != nil {
-		log.Fatal("Error getting user ID:", err)
-	}
-	err = database.UpdateSessionToken(userId, token)
-	if err != nil {
-		log.Fatal("Error updating session token:", err)
-	}
-	fmt.Printf("Creating token for %s %s", username, token)
-}
+		user, err := database.GetUserByToken(cookie.Value)
+		if err != nil {
+			http.Error(w, "Invalid session", http.StatusUnauthorized)
+			return
+		}
 
-func GenerateSecureToken(length int) string {
-	b := make([]byte, length)
-	if _, err := rand.Read(b); err != nil {
-		return ""
+		r = r.WithContext(types.WithUser(r.Context(), user))
+		next.ServeHTTP(w, r)
 	}
-	return hex.EncodeToString(b)
 }

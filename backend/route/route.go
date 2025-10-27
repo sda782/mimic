@@ -10,6 +10,9 @@ import (
 	"mimic/backend/types"
 	"net/http"
 	"os"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 const maxUploadSize = 10 << 30 // 10 GB
@@ -17,7 +20,8 @@ const maxUploadSize = 10 << 30 // 10 GB
 func HandleUpload(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 
-	user, err := database.GetUserByToken(r.Header.Get("Authorization")[7:])
+	cookie, err := r.Cookie("session_token")
+	user, err := database.GetUserByToken(cookie.Value)
 	fmt.Println(user.ID)
 	if user.ID == -1 || err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
@@ -78,18 +82,16 @@ func HandleUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := map[string]interface{}{
-		"status":  "success",
-		"message": fmt.Sprintf("Upload complete, download your file here: %s://%s/%s", scheme, r.Host, fileUpload.ShortCode),
-		"url":     fmt.Sprintf("%s://%s/%s", scheme, r.Host, fileUpload.ShortCode),
+		"status": "success",
+		"url":    fmt.Sprintf("%s://%s/%s", scheme, r.Host, fileUpload.ShortCode),
 	}
 
 	json.NewEncoder(w).Encode(response)
 }
 
 func GetUploads(w http.ResponseWriter, r *http.Request) {
-	token := r.Header.Get("Authorization")
-	token = token[7:]
-	user, err := database.GetUserByToken(token)
+	cookie, err := r.Cookie("session_token")
+	user, err := database.GetUserByToken(cookie.Value)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error getting user ID: %v", err), http.StatusUnauthorized)
 		return
@@ -145,4 +147,57 @@ func parseFormFieldsAndFile(mr *multipart.Reader) (filePart multipart.Part, file
 		break
 	}
 	return
+}
+
+func Login(w http.ResponseWriter, r *http.Request) {
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+	user, err := database.GetUser(username, password)
+	if err != nil {
+		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
+		return
+	}
+
+	sessionToken := uuid.NewString()
+
+	err = database.UpdateSessionToken(user.ID, sessionToken)
+	if err != nil {
+		http.Error(w, "Failed to create session", http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    sessionToken,
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Secure:   false,
+		Expires:  time.Now().Add(24 * time.Hour),
+	})
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":  "success",
+		"message": "Login successful",
+	})
+}
+
+func ValidateSession(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("session_token")
+	if err != nil {
+		http.Error(w, "No session", http.StatusUnauthorized)
+		return
+	}
+
+	_, err = database.GetUserByToken(cookie.Value)
+	if err != nil {
+		http.Error(w, "Invalid session", http.StatusUnauthorized)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"status": "success",
+	})
 }
