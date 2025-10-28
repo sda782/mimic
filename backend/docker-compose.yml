@@ -1,0 +1,15 @@
+services:
+  backend:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "6070:6070"
+    volumes:
+      - ./.env:/app/.env
+      - ./data/uploads:/uploads
+      - ./data/mimic.db:/mimic.db
+    container_name: mimic-backend
+
+    

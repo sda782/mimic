@@ -171,8 +171,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		Value:    sessionToken,
 		Path:     "/",
 		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-		Secure:   false,
+		SameSite: http.SameSiteNoneMode,
+		Secure:   true,
 		Expires:  time.Now().Add(24 * time.Hour),
 	})
 

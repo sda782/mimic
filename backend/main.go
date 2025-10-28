@@ -15,7 +15,10 @@ import (
 func main() {
 	load()
 	setupAdminUser()
-	http.HandleFunc("/uploads", auth.RequireAuth(func(w http.ResponseWriter, r *http.Request) {
+
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/uploads", auth.RequireAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
 			route.GetUploads(w, r)
@@ -24,7 +27,7 @@ func main() {
 		}
 	}))
 
-	http.HandleFunc("/upload", auth.RequireAuth(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/upload", auth.RequireAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "POST":
 			route.HandleUpload(w, r)
@@ -33,7 +36,7 @@ func main() {
 		}
 	}))
 
-	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "POST":
 			route.Login(w, r)
@@ -42,7 +45,7 @@ func main() {
 		}
 	})
 
-	http.HandleFunc("/session/validate", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/session/validate", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
 			route.ValidateSession(w, r)
@@ -51,9 +54,7 @@ func main() {
 		}
 	})
 
-	http.Handle("/app/", http.StripPrefix("/app/", http.FileServer(http.Dir(os.Getenv("WEBAPP_PATH")))))
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
 			route.HandleShortCode(w, r)
@@ -63,10 +64,13 @@ func main() {
 	})
 
 	port := os.Getenv("PORT")
-	http.ListenAndServe(":"+port, nil)
+	handler := auth.CorsMiddleware(mux)
+
+	fmt.Println("Server running on port", port)
+	http.ListenAndServe(":"+port, handler)
+
 	database.Close()
 }
-
 func load() {
 	err := godotenv.Load()
 	if err != nil {
