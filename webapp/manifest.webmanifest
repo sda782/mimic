@@ -1,7 +1,7 @@
 {
   "name": "Aion",
   "short_name": "Aion",
-  "start_url": "./index.html",
+  "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#2D2926",
   "theme_color": "#ed6f63",
