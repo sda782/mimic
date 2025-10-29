@@ -7,9 +7,14 @@
   "theme_color": "#ed6f63",
   "icons": [
     {
-      "src": "assets/icons/app_icon_dark.svg",
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml"
+      "type": "image/png"
     }
   ]
 }

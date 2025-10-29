@@ -7,6 +7,15 @@
     <link rel="icon" href="./assets/icons/app_icon_dark.svg">
     <link rel="stylesheet" href="normalize.css">
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#ed6f63">
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker.register("service-worker.js");
+            });
+        }
+    </script>
     <style>
         input {
             width: calc(100% - 2rem);
