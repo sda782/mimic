@@ -1,0 +1,15 @@
+{
+  "name": "Aion",
+  "short_name": "Aion",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#2D2926",
+  "theme_color": "#ed6f63",
+  "icons": [
+    {
+      "src": "assets/icons/app_icon_dark.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
