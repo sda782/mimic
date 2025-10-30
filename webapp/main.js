@@ -1,13 +1,13 @@
 window.addEventListener('DOMContentLoaded', async () => {
     const server_url = localStorage.getItem('server_url');
     if (!server_url) {
-        window.location.href = 'setup.html';
+        window.location.href = '/setup';
         return;
     }
 
     const isSessionValid = await checkSession(server_url);
     if (!isSessionValid) {
-        window.location.href = 'setup.html';
+        window.location.href = '/setup';
         return;
     }
 
@@ -84,7 +84,7 @@ function upload(base_url = '/') {
 
         xhr.onload = () => {
             if (xhr.status === 401) {
-                window.location.href = 'setup.html';
+                window.location.href = '/setup';
                 return;
             }
 
@@ -120,7 +120,7 @@ async function history(base_url = '/') {
         });
 
         if (response.status === 401) {
-            window.location.href = 'setup.html';
+            window.location.href = '/setup';
             return;
         }
 
