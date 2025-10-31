@@ -18,7 +18,7 @@ function openDB() {
   });
 }
 
-export async function setValue(key, value) {
+async function setValue(key, value) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');
@@ -28,7 +28,7 @@ export async function setValue(key, value) {
   });
 }
 
-export async function getValue(key) {
+async function getValue(key) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readonly');
