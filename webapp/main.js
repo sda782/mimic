@@ -1,5 +1,5 @@
 window.addEventListener('DOMContentLoaded', async () => {
-    const server_url = localStorage.getItem('server_url');
+    const server_url = await getValue('server_url');
     if (!server_url) {
         window.location.href = '/setup';
         return;
