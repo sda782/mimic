@@ -79,7 +79,7 @@
                     throw new Error(`Login failed: ${response.statusText}`);
                 }
 
-                await setValue('server_url', userProvidedUrl);
+                await setValue('server_url', serverUrl);
                 window.location.href = '/';
 
             } catch (err) {
