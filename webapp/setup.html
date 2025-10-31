@@ -40,7 +40,7 @@
         <h2>Setup</h2>
 
         <label for="server_url">Server URL</label><br>
-        <input type="text" id="server_url" placeholder="https://example.com/api"><br>
+        <input type="text" id="server_url" placeholder="https://example.com/api" disabled><br>
 
         <label for="username">Username</label><br>
         <input type="text" id="username" placeholder="Enter username"><br>
@@ -57,10 +57,13 @@
         const password = document.getElementById('password');
         const save = document.getElementById('save');
 
-        let s = await getValue('server_url');
-        if (s && s !== '') {
-            server_url.value = s;
-        }
+        getValue('server_url').then(s => {
+            if (s && s !== '') {
+                server_url.value = s;
+            }
+            server_url.disabled = false;
+        });
+
         save.addEventListener('click', async () => {
             let serverUrl =  resolveServerUrl(server_url.value.trim());
             const loginUrl = serverUrl + 'login';
