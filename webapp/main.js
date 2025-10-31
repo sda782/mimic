@@ -63,6 +63,11 @@ function upload(base_url = '/') {
     const upload_form = document.getElementById('upload_form');
     const status_bar = document.getElementById('status_bar');
     const last_link = document.getElementById('last_link');
+    const file_label_text = document.getElementById('file_label_text');
+
+    file.onchange = () => {
+        file_label_text.innerHTML = file.files[0].name;
+    };
 
     upload_form.addEventListener('submit', e => {
         e.preventDefault();
@@ -96,6 +101,7 @@ function upload(base_url = '/') {
                 progress.style.width = '100%';
                 file.value = '';
                 last_link.innerHTML = `<a href="${response.url}">${response.url}</a>`;
+                file_label_text.innerHTML = 'select file to upload';
             } else {
                 progress_bar.style.width = '0%';
                 progress.style.width = '0%';

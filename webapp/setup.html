@@ -58,11 +58,7 @@
         const save = document.getElementById('save');
 
         save.addEventListener('click', async () => {
-            let serverUrl = server_url.value.trim();
-            if (!serverUrl.endsWith('/')) {
-                serverUrl += '/';
-            }
-
+            let serverUrl =  resolveServerUrl(server_url.value.trim());
             const loginUrl = serverUrl + 'login';
             const formData = new FormData();
             formData.append('username', username.value);
@@ -87,6 +83,16 @@
                 window.alert('Login failed. Please check your credentials and server URL.');
             }
         });
+
+        function resolveServerUrl(url) {
+            if (!url.endsWith('/')) {
+                url += '/';
+            }
+            if (!url.startsWith('https')) {
+                url = 'https://' + url;
+            }
+            return url
+        }
     </script>
 </body>
 
