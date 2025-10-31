@@ -57,6 +57,10 @@
         const password = document.getElementById('password');
         const save = document.getElementById('save');
 
+        let s = await getValue('server_url');
+        if (s && s !== '') {
+            server_url.value = s;
+        }
         save.addEventListener('click', async () => {
             let serverUrl =  resolveServerUrl(server_url.value.trim());
             const loginUrl = serverUrl + 'login';
@@ -88,6 +92,7 @@
             if (!url.endsWith('/')) {
                 url += '/';
             }
+            if (url.startsWith('http://')) return url;
             if (!url.startsWith('https')) {
                 url = 'https://' + url;
             }
