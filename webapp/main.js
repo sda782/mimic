@@ -61,16 +61,23 @@ function upload(base_url = '/') {
     const progress = document.getElementById('progress');
     const progress_bar = document.getElementById('progress-bar');
     const upload_form = document.getElementById('upload_form');
+    const form_submit = document.getElementById('form_submit');
     const status_bar = document.getElementById('status_bar');
     const last_link = document.getElementById('last_link');
     const file_label_text = document.getElementById('file_label_text');
+    const tbody = document.getElementById('history_table').getElementsByTagName('tbody')[0];
 
     file.onchange = () => {
+        if (file.files.length === 0) return;
         file_label_text.innerHTML = file.files[0].name;
+        form_submit.hidden = false;
     };
 
     upload_form.addEventListener('submit', e => {
         e.preventDefault();
+        if (file.files.length === 0) {
+            return;
+        }
 
         const formData = new FormData();
         formData.append('file', file.files[0]);
@@ -101,6 +108,12 @@ function upload(base_url = '/') {
                 progress.style.width = '100%';
                 file.value = '';
                 last_link.innerHTML = `<a href="${response.url}">${response.url}</a>`;
+                tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td title="${response.filename}">${response.filename}</td>
+                    <td><a href="${response.url}" target="_blank" filename="${response.filename}">${response.short_code}</a></td>
+                `;
+                tbody.prepend(tr);
                 file_label_text.innerHTML = 'select file to upload';
             } else {
                 progress_bar.style.width = '0%';
@@ -139,14 +152,14 @@ async function history(base_url = '/') {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td title="${item.filename}">${item.filename}</td>
-                <td><a href="${base_url}${item.short_code}">${item.short_code}</a></td>
+                <td><a href="${base_url}${item.short_code}" target="_blank" filename="${item.filename}">${item.short_code}</a></td>
             `;
             tbody.appendChild(row);
         }
 
         const last_data = data.data[0];
         if (last_data) {
-            last_link.innerHTML = `<a href="${base_url}${last_data.short_code}">${base_url}${last_data.short_code}</a>`;
+            last_link.innerHTML = `<a href="${base_url}${last_data.short_code}" target="_blank" filename="${last_data.filename}">${base_url}${last_data.short_code}</a>`;
         }
     } catch (err) {
         console.error('Failed to load history:', err);

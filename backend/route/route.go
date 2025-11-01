@@ -22,7 +22,6 @@ func HandleUpload(w http.ResponseWriter, r *http.Request) {
 
 	cookie, err := r.Cookie("session_token")
 	user, err := database.GetUserByToken(cookie.Value)
-	fmt.Println(user.ID)
 	if user.ID == -1 || err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
@@ -82,8 +81,10 @@ func HandleUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := map[string]interface{}{
-		"status": "success",
-		"url":    fmt.Sprintf("%s://%s/%s", scheme, r.Host, fileUpload.ShortCode),
+		"status":     "success",
+		"url":        fmt.Sprintf("%s://%s/%s", scheme, r.Host, fileUpload.ShortCode),
+		"short_code": fileUpload.ShortCode,
+		"filename":   fileUpload.FileName,
 	}
 
 	json.NewEncoder(w).Encode(response)
